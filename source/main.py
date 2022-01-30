@@ -22,6 +22,9 @@ CLIP_BOUND = 1.
 SENSITIVITY = 2.
 DATA_ROOT = './../data'
 
+'''
+nohup /home/dongjie/anaconda3/envs/gswgan-pytorch/bin/python3 /data/dongjie/GAN/GS-WGAN/GS-WGAN/source/main.py > /data/dongjie/GAN/GS-WGAN/GS-WGAN/dpmi.log &
+'''
 ##########################################################
 ### hook functions
 ##########################################################
@@ -195,8 +198,19 @@ def main(args):
     transform_train = transforms.ToTensor()
     if dataset == 'mnist':
         dataloader = datasets.MNIST
-        trainset = dataloader(root=os.path.join(DATA_ROOT, 'MNIST'), train=True, download=True,
-                              transform=transform_train)
+        trainset = dataloader(root=os.path.join(DATA_ROOT, 'MNIST'), train=True, download=True, transform=transform_train)
+
+        # select classes you want to include in your subset
+        classes = torch.tensor([0, 1, 2, 3, 4]).to('cpu')
+
+        # get indices that correspond to one of the selected classes
+        indices = (torch.tensor(trainset.targets[..., None]) == classes)
+        indices = indices.any(-1).nonzero(as_tuple=True)[0]
+
+        # subset the dataset
+        trainset = torch.utils.data.Subset(trainset, indices)
+
+
     elif dataset == 'fashionmnist':
         dataloader = datasets.FashionMNIST
         trainset = dataloader(root=os.path.join(DATA_ROOT, 'FashionMNIST'), train=True, download=True,
